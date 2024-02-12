@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Downloader</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" >
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing:border-box;
+        }
+        body {
+            margin: 0px;
+            padding: 0px;
+            font-family: 'Jost', sans-serif;
+        }
+        .ytdownload-wrap {
+            display: flex;
+            height: 100vh;
+            align-items: center;
+            justify-content: center;
+            text-align:center;
+            background:#edf2f4;
+        }
+        .ytdownload-wrap form {
+            position:relative;
+        }
+        .ytdownload-wrap .inner {
+            max-width:750px;
+            width:100%;
+            background:#2b2d42;
+            padding:100px 50px;
+            color:#ffffff;
+            border-radius:20px;
+            box-shadow: 0 0px 13px rgba(0,0,0,0.15);
+        }
+        .ytdownload-wrap input#url {
+            height:50px;
+            padding:0 140px 0 20px;
+            width:100%;
+            border-radius:50px;
+            border:2px solid #d90429;
+            outline:0px;
+        }
+        .ytdownload-wrap input#url:focus {
+            border-color:#ef233c;
+            outline:0px;
+        }
+        .ytdownload-wrap h1 {
+            font-size:48px;
+            margin-bottom:30px;
+        }
+        .ytdownload-wrap label {
+            font-size:18px;
+            margin-bottom:0px;
+            display:block;
+        }
+        .ytdownload-wrap input[type="submit"] {
+            background:#d90429;
+            color:#ffffff;
+            border:0px;
+            padding:10px 30px;
+            border-radius:50px;
+            position: absolute;
+            right: 4px;
+            top: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ytdownload-wrap">
+        <div class="inner">
+            <h1>YT Downloader</h1>
+            <form id="downloadForm" action="/download" method="post">
+                <input type="text" id="url" name="url" placeholder="YouTube Video URL:" required><br><br>
+                <input type="submit" value="Download">
+            </form>
+            <!-- <div class="progress mt-3">
+                <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>-->
+            <div id="progress">Downloading...</div> 
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#downloadForm').submit(function(event) {
+                event.preventDefault();
+                var form = $(this);
+                var url = form.find("input[name='url']").val();
+                $('#progress').text('Downloading...');
+                $('#progressBar').css('width', '0%').attr('aria-valuenow', 0);
+                $.ajax({
+                    type: form.attr('method'),
+                    url: form.attr('action'),
+                    data: form.serialize(),
+                    success: function(response) {
+                        $('#progress').text(response);
+                    },
+                    xhr: function() {
+                        var xhr = new window.XMLHttpRequest();
+                        xhr.open("GET", "/progress", true);  // Request progress from server
+                        xhr.onreadystatechange = function() {
+                            if (xhr.readyState === 3) {
+                                var content = xhr.responseText;
+                                var progress = parseInt(content.split(':')[1]);  // Extract progress percentage from response
+                                $('#progressBar').css('width', progress + '%').attr('aria-valuenow', progress);
+                            }
+                        };
+                        return xhr;
+                    },
+                    error: function(xhr, status, error) {
+                        $('#progress').text('Error: ' + xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
